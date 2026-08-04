@@ -1,0 +1,52 @@
+pipeline {
+    agent { label 'docker-inbound-agent-label' }
+    environment {
+             DOCKERHUB_CREDENTIALS = credentials('DOCKERHUB-CRED')    }
+    stages {
+        stage('Print PAT username') {
+            steps {
+                sh 'echo "GitHub username: $DOCKERHUB_CREDENTIALS_USR"'
+                sh 'echo "GitHub password: $DOCKERHUB_CREDENTIALS_PSW"'  }}
+        stage('my home directory') {
+            steps {
+                sh "pwd"
+            }
+        }
+        stage('show files') {
+            steps {
+                sh "ls -la"
+            }
+        }
+        stage('docker version') {
+            steps {
+                sh "docker --version"
+            }
+        }
+        stage('docker pull') {
+            steps {
+                sh "docker build -t app-nodejst-img -f ex-03-docker-inbound-agent/app/Dockerfile ."
+            }
+        }
+        stage('show docker images') {
+            steps {
+                sh "docker images"
+            }
+        }
+        stage('login to docker-hub') {
+            steps {
+                sh 'echo "$DOCKERHUB_CREDENTIALS_PSW" | docker login -u "$DOCKERHUB_CREDENTIALS_USR" --password-stdin'
+            }
+        }
+        stage('Tag image and push it to docker-hub') {
+            steps {
+                sh "docker tag  dind-inbound-agent-img  evgenykorchev/app-nodejst-img:v01"
+                sh "docker push evgenykorchev/app-nodejst-img:v01"
+            }
+        }
+
+
+
+
+
+    }
+}

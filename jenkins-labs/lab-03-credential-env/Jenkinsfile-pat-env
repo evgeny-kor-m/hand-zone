@@ -1,0 +1,44 @@
+pipeline {
+    agent any
+    tools {
+            nodejs 'jenkins-node'
+         }
+        environment {
+             GIT_CREDENTIALS = credentials('github-credentials')
+        }
+    stages {
+        stage('Verify index.js on github file') {
+            steps {
+                sh 'ls -la lab-01/'
+                sh 'pwd'
+            }
+        }
+        stage('Print PAT username') {
+            steps {
+                sh 'echo "GitHub username: $GIT_CREDENTIALS_USR"'
+                sh 'echo "GitHub password: $GIT_CREDENTIALS_PSW"'
+            }
+        }
+        stage('Node version') {
+            steps {
+                sh 'node -v'
+                sh 'npm -v'
+            }
+        }
+        stage('Init project') {
+            steps {
+                sh 'npm init -y'
+            }
+        }
+        stage('Install Express') {
+            steps {
+                sh 'npm install express'
+            }
+        }      
+        stage('Run index_on_github.js') {
+            steps {
+                sh 'node lab-03-credential-env/index_on_github.js'
+            }
+        }
+    }
+}

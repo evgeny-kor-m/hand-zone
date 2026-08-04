@@ -1,0 +1,14 @@
+pipeline {
+    agent any
+    stages {
+        stage('Show files, pwd, whoami') {
+            steps {
+                sh 'ls -la'
+                sh 'pwd'
+                sh 'whoami'    }      }
+                stage('Print') {
+        steps {
+                echo 'Helolw Word!!!'   
+                            }          }
+    }
+}

@@ -1,0 +1,4 @@
+apiVersion: v2
+name: inv-adapter
+version: 1.0.0
+description: Inventory adapter for Prometheus

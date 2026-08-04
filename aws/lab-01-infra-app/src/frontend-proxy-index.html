@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Simple App - Frontend</title>
+<style>
+  body { font-family: sans-serif; max-width: 500px; margin: 40px auto; padding: 0 20px; }
+  h1 { color: #333; }
+  button { padding: 8px 16px; margin: 5px 0; cursor: pointer; }
+  input { padding: 6px; width: 70%; }
+  #messages { margin-top: 20px; list-style: none; padding: 0; }
+  #messages li { background: #f0f0f0; padding: 8px; margin: 5px 0; border-radius: 4px; }
+  #counter { font-size: 24px; font-weight: bold; }
+</style>
+</head>
+<body>
+  <h1>Simple App (Frontend EC2 → proxy → Backend EC2)</h1>
+
+  <h3>Counter</h3>
+  <div id="counter">0</div>
+  <button onclick="increment()">Increment</button>
+
+  <h3>Messages</h3>
+  <input id="msgInput" type="text" placeholder="Enter message">
+  <button onclick="sendMessage()">Send</button>
+  <ul id="messages"></ul>
+
+<script>
+// Relative paths — browser talks only to the public frontend server,
+// which internally proxies to the private backend.
+async function loadCounter() {
+  const res = await fetch('/api/counter');
+  const data = await res.json();
+  document.getElementById('counter').innerText = data.counter;
+}
+
+async function increment() {
+  const res = await fetch('/api/counter/increment', { method: 'POST' });
+  const data = await res.json();
+  document.getElementById('counter').innerText = data.counter;
+}
+
+async function loadMessages() {
+  const res = await fetch('/api/messages');
+  const data = await res.json();
+  const ul = document.getElementById('messages');
+  ul.innerHTML = '';
+  data.forEach(m => {
+    const li = document.createElement('li');
+    li.textContent = `[${m.id}] ${m.text} (${new Date(m.time).toLocaleTimeString()})`;
+    ul.appendChild(li);
+  });
+}
+
+async function sendMessage() {
+  const input = document.getElementById('msgInput');
+  const text = input.value.trim();
+  if (!text) return;
+  await fetch('/api/messages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ text })
+  });
+  input.value = '';
+  loadMessages();
+}
+
+loadCounter();
+loadMessages();
+</script>
+</body>
+</html>

@@ -1,0 +1,44 @@
+pipeline {
+     agent { label 'ssh-agent-pipeline-label' }
+     tools { nodejs 'jenkins-node' } 
+    stages {
+        stage('who am I?') {
+            steps {
+                sh 'whoami'
+            }
+        }
+        stage('where am I?, Show files') {
+            steps {
+                sh 'pwd'
+                sh 'ls -al'
+            }
+        }
+        stage('what is my OS system?') {
+            steps {
+                sh 'uname -a'
+                sh 'cat /etc/os-release'
+            }
+        }
+        stage('Node version') {
+            steps {
+                sh 'node -v'
+                sh 'npm -v'
+            }
+        }
+        stage('Init project') {
+            steps {
+                sh 'npm init -y'
+            }
+        }
+        stage('Install Express') {
+            steps {
+                sh 'npm install express'
+            }
+        }      
+        stage('Run index_on_github.js') {
+            steps {
+                sh 'node lab-04-jenkins-ssh-agent/index.js'
+            }
+        }
+    }
+}

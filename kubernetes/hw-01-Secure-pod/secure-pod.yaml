@@ -1,0 +1,69 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: secure-pod-config
+data:
+  nginx.conf: |
+    events {}
+    http {
+      server {
+        listen 8080;
+        location / {
+          root /usr/share/nginx/html;
+          index index.html;
+        }
+      }
+    }
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: secure-pod
+spec:
+  # Pod-level: who runs the containers
+  securityContext:
+    runAsNonRoot: true        # forbid root user
+    runAsUser: 1001           # run as user with UID 1001
+    runAsGroup: 1001          # run as group with GID 1001
+    fsGroup: 1001             # files created in volumes owned by GID 1001
+
+  containers:
+  - name: secure-container
+    image: nginx:latest
+    resources:
+      requests:
+        memory: "128Mi"
+        cpu: "100m"
+      limits:
+        memory: "256Mi"
+        cpu: "500m"
+    ports:
+    - containerPort: 8080
+    
+    # Container-level: what container can do
+    securityContext:
+      readOnlyRootFilesystem: true       # filesystem is read-only
+      allowPrivilegeEscalation: false    # forbid privilege escalation
+      capabilities:
+        drop:
+          - ALL                          # drop all Linux capabilities
+    volumeMounts:
+    - name: nginx-config
+      mountPath: /etc/nginx/nginx.conf
+      subPath: nginx.conf
+    - name: cache
+      mountPath: /var/cache/nginx
+    - name: run
+      mountPath: /var/run
+    - name: tmp
+      mountPath: /tmp
+  volumes:
+  - name: nginx-config
+    configMap:
+      name: nginx-config
+  - name: cache
+    emptyDir: {}
+  - name: run
+    emptyDir: {}
+  - name: tmp
+    emptyDir: {}

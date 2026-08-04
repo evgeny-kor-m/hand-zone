@@ -1,0 +1,39 @@
+
+pipeline {
+    agent any
+    tools {
+            nodejs 'jenkins-node'
+         }
+    environment {
+        SSH_KEY = credentials('jenkins-github-ssh-cred')
+    }
+    stages {
+        stage('Print SSH username') {
+            steps {
+                sh 'echo "SSH username: $SSH_KEY_USR"'
+            }
+        }
+        stage('Verify index.js on github file') {
+            steps {
+                sh 'ls -la lab-01/'
+                sh 'pwd'
+            }
+        }
+        stage('Node activity') {
+            steps {
+                echo 'Node version'
+                sh 'node -v'
+                sh 'npm -v'
+                echo 'Init project'
+                sh 'npm init -y'
+                echo 'Init project'
+                sh 'npm install express'
+            }
+        } 
+        stage('Run index_on_github.js') {
+            steps {
+                sh 'node lab-03-credential-env/index_on_github.js'
+            }
+        }
+    }
+}

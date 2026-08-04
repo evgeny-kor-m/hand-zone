@@ -1,0 +1,118 @@
+# ============ ConfigMap ============
+apiVersion: v1              # Kubernetes API version
+kind: ConfigMap             # Stores configuration data (files, env vars)
+metadata:
+  name: secure-pod-config   # Name used to reference this ConfigMap in volumes
+
+data:
+  nginx.conf: |             # Key "nginx.conf" becomes a file when mounted in container
+    events {}               # Required nginx block (even if empty)
+    http {
+      server {
+        listen 8080;        # Port 8080 instead of 80 because non-root users
+                            # cannot bind to ports below 1024
+        location / {
+          root /usr/share/nginx/html;  # Serve static files from this directory
+          index index.html;            # Default file to serve
+        }
+      }
+    }
+---                         # Separator between multiple resources in one file
+
+# ============ ReplicaSet ============
+apiVersion: apps/v1         # API version for workload resources
+kind: ReplicaSet            # Ensures N copies of a pod are always running
+metadata:
+  name: secure-replicaset   # ReplicaSet name
+
+spec:
+  replicas: 3               # Always keep exactly 3 pods running
+                            # If one dies - ReplicaSet creates a new one
+  selector:
+    matchLabels:
+      app: secure-app       # ReplicaSet tracks pods with this label
+                            # Must match template.metadata.labels below
+
+  template:                 # Blueprint for pods that ReplicaSet creates
+    metadata:
+      labels:
+        app: secure-app     # Label assigned to each created pod
+                            # Must match selector.matchLabels above
+
+    spec:
+      # --- Pod-level securityContext ---
+      # These settings apply to ALL containers in the pod
+      securityContext:
+        runAsNonRoot: true  # Kubernetes rejects pod if container tries to run as root (UID 0)
+        runAsUser: 1001     # All processes run as this UID
+        runAsGroup: 1001    # All processes run as this GID
+        fsGroup: 1001       # All files created in volumes are owned by this GID
+                            # Allows non-root user to read/write volume files
+
+      containers:
+      - name: secure-container   # Container name (used in kubectl exec -c <name>)
+        image: nginx:latest      # Docker image to run
+
+        ports:
+        - containerPort: 8080    # Informational only - does not actually expose the port
+                                 # Use Service to expose
+
+        # --- Container-level securityContext ---
+        # These settings apply ONLY to this container
+        # Container-level overrides pod-level if both are set
+        securityContext:
+          readOnlyRootFilesystem: true      # Container cannot write anywhere on /
+                                            # Can only write to mounted volumes (emptyDir)
+          allowPrivilegeEscalation: false   # Process cannot gain more privileges than parent
+                                            # Blocks sudo, setuid binaries
+          capabilities:
+            drop:
+              - ALL               # Drop all Linux capabilities
+                                  # Default capabilities include: chown, kill, net_bind_service
+                                  # Dropping ALL means container can only do what a normal user can
+
+        # --- Resources ---
+        resources:
+          requests:               # Guaranteed resources - Kubernetes reserves this on the node
+            memory: "128Mi"       # 128 Megabytes
+            cpu: "100m"           # 0.1 CPU core
+          limits:                 # Hard cap - container cannot exceed this
+            memory: "256Mi"       # Exceeded → pod killed with OOMKilled
+            cpu: "500m"           # Exceeded → CPU throttled (not killed)
+
+        # --- volumeMounts: where to mount volumes inside the container ---
+        volumeMounts:
+        - name: nginx-config              # Refers to volume named "nginx-config" below
+          mountPath: /etc/nginx/nginx.conf # Mount as this file path inside container
+          subPath: nginx.conf             # Mount only this key from ConfigMap
+                                          # Without subPath - entire ConfigMap is mounted as directory
+
+        - name: cache
+          mountPath: /var/cache/nginx     # nginx writes cache here
+                                          # Without this volume - fails because filesystem is read-only
+
+        - name: run
+          mountPath: /var/run             # nginx writes its PID file here
+
+        - name: tmp
+          mountPath: /tmp                 # Temporary files
+
+      # --- volumes: define what volumes exist ---
+      volumes:
+      - name: nginx-config        # Volume name - referenced by volumeMounts.name
+        configMap:
+          name: secure-pod-config # Pull data from this ConfigMap
+                                  # Each key in ConfigMap becomes a file in the volume
+
+      - name: cache
+        emptyDir: {}              # Empty writable directory, created when pod starts
+                                  # Deleted when pod is removed
+                                  # Solves read-only filesystem restriction for nginx cache
+
+      - name: run
+        emptyDir: {}              # Same - writable directory for /var/run
+
+      - name: tmp
+        emptyDir: {}              # Same - writable directory for /tmp
+
+

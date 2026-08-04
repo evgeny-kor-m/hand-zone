@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-adapter
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}-adapter
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}-adapter
+    spec:
+      containers:
+        - name: adapter
+          image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+          ports:
+            - containerPort: {{ .Values.service.port }}
+          env:
+            - name: inventory_ser_host
+              value: {{ .Values.env.inventoryHost }}

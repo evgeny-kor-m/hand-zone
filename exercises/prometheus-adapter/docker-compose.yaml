@@ -1,0 +1,57 @@
+services:
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    ports:
+    - 9090:9090
+    command:
+    - --config.file=/etc/prometheus/prometheus.yml
+    volumes:
+    - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    - prometheus_data:/prometheus
+    networks:
+    - custom-network
+    depends_on:
+    - inv-adapter
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+    - 3000:3000
+    volumes:
+    - grafana_data:/var/lib/grafana
+    networks:
+    - custom-network
+    depends_on:
+    - prometheus
+
+  inv-container:
+    image: inventory:latest
+    container_name: inv-container
+    ports:
+    - 1337:1337
+    networks:
+    - custom-network
+
+  inv-adapter:
+    image: adapter:latest
+    container_name: inv-adapter
+    environment:
+      - inventory_ser_host=http://inv-container:1337/inventory
+    ports:
+    - 9100:9100
+    networks:
+    - custom-network
+    depends_on:
+     - inv-container
+
+
+networks:
+  custom-network:
+    driver: bridge
+    # external: true
+
+volumes:
+  prometheus_data:
+  grafana_data:

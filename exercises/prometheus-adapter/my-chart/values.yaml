@@ -1,0 +1,11 @@
+image:
+  repository: adapter
+  tag: latest
+
+service:
+  port: 9100
+
+env:
+  inventoryHost: http://inv-container:1337/inventory
+
+replicaCount: 1

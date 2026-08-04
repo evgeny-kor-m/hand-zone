@@ -1,0 +1,26 @@
+pipeline {
+    agent { label 'jenkins-agent-slave-label' }
+    stages {
+        stage('my home directory') {
+            steps {
+                sh "pwd"
+            }
+        }
+        stage('show files') {
+            steps {
+                sh "ls -la"
+            }
+        }
+        stage('check vesrsion') {
+            steps {
+                sh "python3 --version"
+            }
+        }
+        stage('run python') {
+            steps {
+                sh "python3 lab-05-jenkins-inbound-slave/main.py"
+            }
+        }
+        
+    }
+}

@@ -1,0 +1,20 @@
+node {
+  stage('SCM') {
+    checkout scm
+  }
+  stage('Show files, PWD') {
+    sh "ls -la"
+    sh "pwd"
+  }
+  stage('SonarQube Analysis') {
+    def scannerHome = tool 'sonar_scanner_tool';
+    // sonar_instance - the name configured in Jenkins
+    withSonarQubeEnv('sonar_instance') {
+      // Default location of sonar-project.properties
+      // sh "${scannerHome}/bin/sonar-scanner"
+      
+      // Specify where to look for sonar-project.properties
+      sh "${scannerHome}/bin/sonar-scanner -Dsonar.projectBaseDir=ex-01-sonar-integration"
+    }
+  }
+}
