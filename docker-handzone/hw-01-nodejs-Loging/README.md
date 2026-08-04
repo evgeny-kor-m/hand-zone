@@ -1,8 +1,8 @@
 ## Nodejs Loging
 
-npm init -y
-npm i express
-npm install log4js
+npm init -y  
+npm i express  
+npm install log4js  
 
 
 docker run --name App1 -d -p 3001:3000 -e INSTANCE_ID=App1 -v "$(pwd -W)/logs/app1:/usr/src/app/logs" my-node-health-app

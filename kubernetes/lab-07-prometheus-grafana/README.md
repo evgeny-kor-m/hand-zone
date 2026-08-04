@@ -75,7 +75,7 @@ kubectl run cpu-test \
   Memory usage — container_memory_usage_bytes  
   Network I/O — container_network_transmit_bytes_total  
   Disk I/O — container_fs_reads_bytes_total 
-
+  
 rate(container_cpu_usage_seconds_total{pod="cpu-test"}[1m]) * 100
 ```
 - After testing stop it
@@ -85,13 +85,9 @@ kubectl delete pod cpu-test
 ##### Common Helm Commands
 
 ```
-# - Shows all installed Helm releases in namespace monitoring
-helm list -n monitoring       
-
-# - Updates an already installed prometheus release to the latest chart version from the prometheus-community repository
+helm list -n monitoring
 helm upgrade prometheus prometheus-community/kube-prometheus-stack \
   -n monitoring
-  
 helm uninstall prometheus -n monitoring
 
 ```

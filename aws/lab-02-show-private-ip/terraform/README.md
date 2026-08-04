@@ -15,8 +15,8 @@ Docs: https://registry.terraform.io/providers/hashicorp/aws/latest/docs
     - Assign necessary permissions (e.g. specific policies like AmazonEC2FullAccess, !AdministratorAccess!)
     - Set AWS region for example **us-east-1**
    
-    Access key: secret_key
-    Secret access key: secret_key
+    Access key: Access key
+    Secret access key: Secret access key
 
 #### Install AWS CLI 
 ```
