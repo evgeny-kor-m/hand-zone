@@ -4,3 +4,4 @@
 bfg.jar
 *.bfg-report/
 .idea
+*.iml
