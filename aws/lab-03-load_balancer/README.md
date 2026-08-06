@@ -36,7 +36,7 @@ EFS Lifecycle — Cheat Sheet
 ---------------------------------------------------------------------------------------------------------
 | Class      | Cost/GB  |  Access Fee (read/download)| Speed      | Rule                                |
 |-------------------------------------------------------------------------------------------------------|
-| `Standard` | Highest  |  None                      | Fastest    | ← moved back here if accessed again |
+| Standard | Highest  |  None                      | Fastest    | ← moved back here if accessed again |
 | IA         | Lower    |  Yes                       | Slower     | Moved here if unused X days         |
 | Archive    | Lowest   |  Highest                   | Slowest    | Moved here if unused longer         |
 ---------------------------------------------------------------------------------------------------------
@@ -77,9 +77,39 @@ Add to Security Group Outbound rules Port range: 2049
 
 Check:
 cat /etc/fstab  - The /etc/fstab (file system table) is a system configuration file in Linux used to define how storage drives, partitions, and network shares are mounted at boot. It ensures disks are automatically recognized and attached to the correct directory paths without manual intervention.   
-```
 
 sudo chown -R ubuntu:ubunto /data
 chmod 777 /data
+```
 
+#### Bonus: Using ECR & IAM - for this Task
+ECR (Elastic Container Registry)  
+```
+Amazon ECR -> Private registry -> Repositories -> Create private repository
+Repository name: nginx-test
+Image tag mutability: Mutable
+Encryption configuration: AES-256
 
+# Click on View push commands
+Use the AWS CLI:
+aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 111314928072.dkr.ecr.us-east-1.amazonaws.com
+
+Build your Docker image:
+docker build -t nginx-test .
+
+Tag your image:
+docker tag nginx-test:latest 111314928072.dkr.ecr.us-east-1.amazonaws.com/nginx-test:latest
+
+Push the image to this AWS repository:
+docker push 111314928072.dkr.ecr.us-east-1.amazonaws.com/nginx-test:latest
+```
+Grand to instance Role allowing access to ECR  
+```
+EC2 -> Instances -> select instance -> Action -> Security -> Modify IAM role
+IAM role:     click on   -> Create new IAM role
+Role name: instanceRole
+Create role
+
+IAM -> Roles -> select instanceRole -> Permission -> Add permission -> Attach policy 
+AmazonEC2ContainerRegistryFullAccess
+```
