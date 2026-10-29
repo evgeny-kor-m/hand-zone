@@ -1,0 +1,62 @@
+# FICTIONAL LOG — for educational use only. All hosts, users, and data are made up.
+
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-8.2.0, pluggy-1.5.0
+rootdir: /workspace/shop-tests
+configfile: pytest.ini
+collected 3 items
+
+tests/test_orders.py::test_create_order PASSED                           [ 33%]
+tests/test_orders.py::test_get_orders FAILED                             [ 66%]
+tests/test_orders.py::test_get_order_by_id PASSED                        [100%]
+
+=================================== FAILURES ===================================
+_______________________________ test_get_orders ________________________________
+
+api_client = <tests.helpers.ApiClient base_url='https://api.example.test' timeout=10>
+
+    def test_get_orders(api_client):
+>       response = api_client.get("/api/v1/orders", params={"customer_id": "cust_0042", "limit": 500})
+
+tests/test_orders.py:31:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests/helpers.py:52: in get
+    return self._request_with_retry("GET", path, **kwargs)
+tests/helpers.py:68: in _request_with_retry
+    raise last_error
+tests/helpers.py:61: in _request_with_retry
+    return self.session.request(method, self.base_url + path, timeout=self.timeout, **kwargs)
+/usr/lib/python3.12/site-packages/requests/sessions.py:589: in request
+    resp = self.send(prep, **send_kwargs)
+/usr/lib/python3.12/site-packages/requests/sessions.py:703: in send
+    r = adapter.send(request, **kwargs)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+    def send(self, request, stream=False, timeout=None, verify=True, cert=None, proxies=None):
+        ...
+        except (SSLError, ReadTimeoutError) as e:
+>           raise ReadTimeout(e, request=request)
+E           requests.exceptions.ReadTimeout: HTTPSConnectionPool(host='api.example.test', port=443): Read timed out. (read timeout=10)
+
+/usr/lib/python3.12/site-packages/requests/adapters.py:713: ReadTimeout
+------------------------------ Captured log call -------------------------------
+INFO     tests.helpers:helpers.py:58 GET https://api.example.test/api/v1/orders?customer_id=cust_0042&limit=500 (attempt 1/3)
+WARNING  tests.helpers:helpers.py:65 Attempt 1 failed after 10.01s: ReadTimeout
+INFO     tests.helpers:helpers.py:58 GET https://api.example.test/api/v1/orders?customer_id=cust_0042&limit=500 (attempt 2/3)
+WARNING  tests.helpers:helpers.py:65 Attempt 2 failed after 10.00s: ReadTimeout
+INFO     tests.helpers:helpers.py:58 GET https://api.example.test/api/v1/orders?customer_id=cust_0042&limit=500 (attempt 3/3)
+WARNING  tests.helpers:helpers.py:65 Attempt 3 failed after 10.02s: ReadTimeout
+
+----------------------- Application server log (excerpt) -----------------------
+2026-10-20 10:02:11,507 INFO  [orders-api] GET /api/v1/orders/ord_9001 200 in 38ms
+2026-10-20 10:02:12,031 INFO  [orders-api] GET /api/v1/orders customer_id=cust_0042 limit=500 started
+2026-10-20 10:02:12,033 DEBUG [orders-api] DB query: SELECT * FROM orders o JOIN order_items i ON ... WHERE o.customer_id = $1 ORDER BY o.created_at DESC LIMIT 500
+2026-10-20 10:02:24,890 WARN  [orders-api] Slow query detected: 12857ms (threshold 1000ms) table=orders
+2026-10-20 10:02:24,912 INFO  [orders-api] GET /api/v1/orders 200 in 12881ms (client disconnected before response was sent)
+2026-10-20 10:02:47,610 WARN  [orders-api] Slow query detected: 13104ms (threshold 1000ms) table=orders
+2026-10-20 10:03:00,447 WARN  [orders-api] Slow query detected: 12795ms (threshold 1000ms) table=orders
+2026-10-20 10:03:05,120 INFO  [db-monitor] orders table row count: 4,812,334; last ANALYZE: 41 days ago
+
+=========================== short test summary info ============================
+FAILED tests/test_orders.py::test_get_orders - requests.exceptions.ReadTimeout: HTTPSConnectionPool(host='api.example.test', port=443): Read timed out. (read timeout=10)
+========================= 1 failed, 2 passed in 32.47s =========================

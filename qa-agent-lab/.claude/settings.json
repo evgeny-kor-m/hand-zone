@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "ask": [
+      "Edit",
+      "Write",
+      "NotebookEdit",
+      "Bash",
+      "WebFetch",
+      "WebSearch"
+    ],
+    "disableBypassPermissionsMode": "disable"
+  }
+}
