@@ -5,7 +5,7 @@ An educational project for learning how to extend Claude Code with **skills** an
 ## Structure
 
 ```
-qa-agent-lab/
+ai-qa-agent-lab/
 ├── .claude/
 │   ├── settings.json             # Permission rules (ask before Bash/Edit/Write/Web*)
 │   ├── agents/
